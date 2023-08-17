@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -97,38 +97,96 @@ namespace TicTacToe
             }
         }
 
+        private Dictionary<string, int> moveScores = new Dictionary<string, int>();
+
         private void MakeComputerMove()
         {
-            List<Button> availableButtons = new List<Button>();
+            // Check if there is any winning move for the player
+            Button winningMove = GetWinningMove("X");
 
-            foreach (Button button in buttons)
+            // If there is a winning move for the player, block it
+            if (winningMove != null)
             {
-                if (button.Text == "")
-                {
-                    availableButtons.Add(button);
-                }
+                winningMove.Text = "O";
+                winningMove.Enabled = false;
             }
-
-            if (availableButtons.Count > 0)
+            else
             {
-                int bestScore = int.MinValue;
-                Button bestMove = availableButtons[0];
+                // Check if the player has made any move
+                bool playerHasMoved = false;
 
-                foreach (Button button in availableButtons)
+                foreach (Button button in buttons)
                 {
-                    button.Text = "O";
-                    int score = AlphaBeta(0, int.MinValue, int.MaxValue, false);
-                    button.Text = "";
-
-                    if (score > bestScore)
+                    if (button.Text == "X")
                     {
-                        bestScore = score;
-                        bestMove = button;
+                        playerHasMoved = true;
+                        break;
                     }
                 }
 
-                bestMove.Text = "O";
-                bestMove.Enabled = false;
+                // If the player has made a move, play strategically
+                if (playerHasMoved)
+                {
+                    // Check if there is any winning move for the computer
+                    Button winningMoveForComputer = GetWinningMove("O");
+
+                    // If there is a winning move for the computer, play it
+                    if (winningMoveForComputer != null)
+                    {
+                        winningMoveForComputer.Text = "O";
+                        winningMoveForComputer.Enabled = false;
+                    }
+                    else
+                    {
+                        // Otherwise, play a random available move with consideration of move scores
+                        List<Button> availableButtons = new List<Button>();
+
+                        foreach (Button button in buttons)
+                        {
+                            if (button.Text == "")
+                            {
+                                availableButtons.Add(button);
+                            }
+                        }
+
+                        if (availableButtons.Count > 0)
+                        {
+                            int maxScore = int.MinValue;
+                            List<Button> bestMoves = new List<Button>();
+
+                            foreach (Button button in availableButtons)
+                            {
+                                int score = GetMoveScore(button);
+
+                                if (score > maxScore)
+                                {
+                                    maxScore = score;
+                                    bestMoves.Clear();
+                                    bestMoves.Add(button);
+                                }
+                                else if (score == maxScore)
+                                {
+                                    bestMoves.Add(button);
+                                }
+                            }
+
+                            Random random = new Random();
+                            int randomIndex = random.Next(0, bestMoves.Count);
+
+                            Button selectedMove = bestMoves[randomIndex];
+                            selectedMove.Text = "O";
+                            selectedMove.Enabled = false;
+
+                            UpdateMoveScore(selectedMove);
+                        }
+                    }
+                }
+                else
+                {
+                    // If the player hasn't made a move yet, play in the top-left cell
+                    buttons[0].Text = "O";
+                    buttons[0].Enabled = false;
+                }
             }
 
             if (IsBoardFull() && !CheckForWin("X") && !CheckForWin("O"))
@@ -140,6 +198,178 @@ namespace TicTacToe
             isPlayerX = true;
         }
 
+        private int GetMoveScore(Button button)
+        {
+            int score = 0;
+
+            if (moveScores.ContainsKey(button.Name))
+            {
+                score = moveScores[button.Name];
+            }
+
+            return score;
+        }
+
+        private void UpdateMoveScore(Button button)
+        {
+            if (moveScores.ContainsKey(button.Name))
+            {
+                moveScores[button.Name]++;
+            }
+            else
+            {
+                moveScores[button.Name] = 1;
+            }
+        }
+
+        private Button GetWinningMove(string symbol)
+        {
+            // Check rows
+            for (int row = 0; row < 3; row++)
+            {
+                int count = 0;
+                Button emptyButton = null;
+
+                for (int col = 0; col < 3; col++)
+                {
+                    Button button = buttons[row * 3 + col];
+                    if (button.Text == symbol)
+                    {
+                        count++;
+                    }
+                    else if (button.Text == "")
+                    {
+                        emptyButton = button;
+                    }
+                }
+
+                if (count == 2 && emptyButton != null)
+                {
+                    return emptyButton;
+                }
+            }
+
+            // Check columns
+            for (int col = 0; col < 3; col++)
+            {
+                int count = 0;
+                Button emptyButton = null;
+
+                for (int row = 0; row < 3; row++)
+                {
+                    Button button = buttons[row * 3 + col];
+                    if (button.Text == symbol)
+                    {
+                        count++;
+                    }
+                    else if (button.Text == "")
+                    {
+                        emptyButton = button;
+                    }
+                }
+
+                if (count == 2 && emptyButton != null)
+                {
+                    return emptyButton;
+                }
+            }
+
+            // Check diagonals
+            if (buttons[0].Text == symbol && buttons[4].Text == symbol && buttons[8].Text == "")
+            {
+                return buttons[8];
+            }
+            if (buttons[0].Text == symbol && buttons[8].Text == symbol && buttons[4].Text == "")
+            {
+                return buttons[4];
+            }
+            if (buttons[4].Text == symbol && buttons[8].Text == symbol && buttons[0].Text == "")
+            {
+                return buttons[0];
+            }
+            if (buttons[2].Text == symbol && buttons[4].Text == symbol && buttons[6].Text == "")
+            {
+                return buttons[6];
+            }
+            if (buttons[2].Text == symbol && buttons[6].Text == symbol && buttons[4].Text == "")
+            {
+                return buttons[4];
+            }
+            if (buttons[4].Text == symbol && buttons[6].Text == symbol && buttons[2].Text == "")
+            {
+                return buttons[2];
+            }
+
+            return null;
+        }
+
+        private int MiniMax(Button button, int depth, bool isMaximizingPlayer, int alpha, int beta)
+        {
+            string opponentSymbol = isMaximizingPlayer ? "X" : "O";
+            string currentPlayerSymbol = isMaximizingPlayer ? "O" : "X";
+
+            if (CheckForWin(opponentSymbol))
+            {
+                return -10 + depth;
+            }
+            else if (CheckForWin(currentPlayerSymbol))
+            {
+                return 10 - depth;
+            }
+            else if (IsBoardFull())
+            {
+                return 0;
+            }
+
+            if (isMaximizingPlayer)
+            {
+                int bestScore = int.MinValue;
+
+                foreach (Button b in buttons)
+                {
+                    if (b.Text == "")
+                    {
+                        b.Text = currentPlayerSymbol;
+                        int score = MiniMax(b, depth + 1, false, alpha, beta);
+                        b.Text = "";
+
+                        bestScore = Math.Max(score, bestScore);
+                        alpha = Math.Max(alpha, bestScore);
+
+                        if (beta <= alpha)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                return bestScore;
+            }
+            else
+            {
+                int bestScore = int.MaxValue;
+
+                foreach (Button b in buttons)
+                {
+                    if (b.Text == "")
+                    {
+                        b.Text = currentPlayerSymbol;
+                        int score = MiniMax(b, depth + 1, true, alpha, beta);
+                        b.Text = "";
+
+                        bestScore = Math.Min(score, bestScore);
+                        beta = Math.Min(beta, bestScore);
+
+                        if (beta <= alpha)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                return bestScore;
+            }
+        }
 
         private int AlphaBeta(int depth, int alpha, int beta, bool isMaximizingPlayer)
         {
@@ -209,7 +439,6 @@ namespace TicTacToe
             }
         }
 
-
         private bool IsBoardFull()
         {
             foreach (Button button in buttons)
@@ -222,7 +451,6 @@ namespace TicTacToe
 
             return true;
         }
-
 
         private bool CheckForWin(string symbol)
         {
