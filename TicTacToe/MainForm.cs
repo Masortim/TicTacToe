@@ -8,8 +8,6 @@ namespace TicTacToe
     public partial class MainForm : Form
     {
         private bool isPlayerX;
-        private bool isComputerTurn;
-
         private const int buttonSize = 90;
         private const int padding = 10;
         private const int gridSize = 3;
@@ -35,7 +33,7 @@ namespace TicTacToe
             for (int i = 0; i < gridSize * gridSize; i++)
             {
                 Button button = new Button();
-                button.Size = new Size(buttonSize, buttonSize);
+                button.Size = new Size(ButtonSize, ButtonSize);
                 button.Font = new Font("Arial", 36);
                 button.Tag = i;
                 button.FlatStyle = FlatStyle.Flat;
@@ -45,7 +43,7 @@ namespace TicTacToe
 
                 int row = i / gridSize;
                 int col = i % gridSize;
-                button.Location = new Point(padding + col * (buttonSize + padding), padding + row * (buttonSize + padding));
+                button.Location = new Point(padding + col * (ButtonSize + padding), padding + row * (ButtonSize + padding));
 
                 buttons.Add(button);
 
@@ -53,7 +51,7 @@ namespace TicTacToe
             }
 
             isPlayerX = true;
-            isComputerTurn = false;
+            IsComputerTurn = false;
         }
 
         private void Button_Click(object sender, EventArgs e)
@@ -98,6 +96,12 @@ namespace TicTacToe
         }
 
         private Dictionary<string, int> moveScores = new Dictionary<string, int>();
+
+        public bool IsComputerTurn { get => IsComputerTurn1; set => IsComputerTurn1 = value; }
+        public bool IsComputerTurn1 { get => IsComputerTurn2; set => IsComputerTurn2 = value; }
+        public bool IsComputerTurn2 { get; set; }
+
+        public static int ButtonSize => buttonSize;
 
         private void MakeComputerMove()
         {
@@ -505,7 +509,7 @@ namespace TicTacToe
             }
 
             isPlayerX = true;
-            isComputerTurn = false;
+            IsComputerTurn = false;
         }
     }
 }
