@@ -101,10 +101,10 @@ namespace TicTacToe
 
         private void MakeComputerMove()
         {
-            // Check if there is any winning move for the player
+            // Проверка, есть ли какой-нибудь выигрышный ход для игрока
             Button winningMove = GetWinningMove("X");
 
-            // If there is a winning move for the player, block it
+            // Если для игрока есть выигрышный ход, заблокировать его
             if (winningMove != null)
             {
                 winningMove.Text = "O";
@@ -112,7 +112,7 @@ namespace TicTacToe
             }
             else
             {
-                // Check if the player has made any move
+                // Проверка, сделал ли игрок какой-либо ход
                 bool playerHasMoved = false;
 
                 foreach (Button button in buttons)
