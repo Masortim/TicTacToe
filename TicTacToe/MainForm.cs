@@ -128,7 +128,7 @@ namespace TicTacToe
                     }
                 }
 
-                // If the player has made a move, play strategically
+                // Если игрок сделал ход, играть стратегически
                 if (playerHasMoved)
                 {
                     // Check if there is any winning move for the computer
